@@ -12,6 +12,15 @@ import {
 } from "recharts";
 import "./index.css";
 
+/* ===== API URL HELPER ===== */
+const getApiUrl = (endpoint) => {
+  const base = import.meta.env.VITE_API_URL || "";
+  if (base) {
+    return `${base}${endpoint}`;
+  }
+  return `/api${endpoint}`;
+};
+
 /* ===== CUSTOM TOOLTIP ===== */
 const ChartTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -83,7 +92,7 @@ function App() {
   const predictManual = async () => {
     setLoading(true);
     try {
-      const res = await axios.post("/api/predict", { data: { ...baseCustomer, ...form } });
+      const res = await axios.post(getApiUrl("/predict"), { data: { ...baseCustomer, ...form } });
       setManualResult(res.data);
       setSimulatedResult(null);
       setSimForm({ Discount: 0, Contract: form.Contract, "Satisfaction Score": form["Satisfaction Score"], "Premium Tech Support": form["Premium Tech Support"] });
@@ -100,7 +109,7 @@ function App() {
     fd.append("file", file);
     setLoading(true);
     try {
-      const res = await axios.post("/api/bulk_predict", fd);
+      const res = await axios.post(getApiUrl("/bulk_predict"), fd);
       setBulkResult(res.data);
       setRiskFilter("All");
     } catch (err) {
@@ -122,7 +131,7 @@ function App() {
   const viewBulkCustomerDetails = async (customerData) => {
     setLoading(true);
     try {
-      const res = await axios.post("/api/predict", { data: customerData });
+      const res = await axios.post(getApiUrl("/predict"), { data: customerData });
       setManualResult(res.data);
       setSimulatedResult(null);
       setSimForm({ Discount: 0, Contract: customerData.Contract || "Month-to-Month", "Satisfaction Score": customerData["Satisfaction Score"] || 3, "Premium Tech Support": customerData["Premium Tech Support"] || 0 });
@@ -138,7 +147,7 @@ function App() {
       setSimulating(true);
       try {
         const newCharge = Math.max(0, (form["Monthly Charge"] || 100) - simForm.Discount);
-        const res = await axios.post("/api/predict", {
+        const res = await axios.post(getApiUrl("/predict"), {
           data: { ...baseCustomer, ...form, "Monthly Charge": newCharge, Contract: simForm.Contract, "Satisfaction Score": simForm["Satisfaction Score"], "Premium Tech Support": simForm["Premium Tech Support"] },
         });
         setSimulatedResult(res.data);
